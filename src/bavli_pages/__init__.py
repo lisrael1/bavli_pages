@@ -8,3 +8,6 @@ def bavli_pages_as_nested_data():
 def bavli_pages_as_df():
     return Bavli().get_df()
 
+def get_pages_at_chapters():
+    return Bavli().get_pages_at_chapters()
+

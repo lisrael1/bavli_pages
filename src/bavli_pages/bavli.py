@@ -16,7 +16,8 @@ class Page:
 
 
 class Chapter:
-    def __init__(self, start, end):
+    def __init__(self, chapter_number, start, end):
+        self.chapter_number = chapter_number
         self.start = Page(start)
         self.end = Page(end)
         self.list_of_all_pages = self.get_list_of_all_pages()
@@ -30,15 +31,16 @@ class Chapter:
 
 class Masechet:
     def __init__(self, masechet_name: str):
-        self.name=masechet_name
-        self.chapters=list()
+        self.name = masechet_name
+        self.chapters = list()
 
 
 class Bavli:
     def __init__(self):
-        self.df = self.get_df()
+        self.df = self.build_df()
         self.bavli = dict()
         self.build_nested_data()
+        self.all_chapters = self.all_pages_in_each_chapter()
 
     def build_nested_data(self):
         for masechet in self.df.masechet.unique():
@@ -48,11 +50,11 @@ class Bavli:
                 if chapter_df.shape[0] != 2:
                     print(f'error, need start and end page at masechet {masechet} chapter {chapter}')
                     print(chapter_df)
-                chapter_obj = Chapter(start=chapter_df.start, end=chapter_df.end)
+                chapter_obj = Chapter(chapter_number=chapter, start=chapter_df.start, end=chapter_df.end)
                 self.bavli[masechet].chapters.append(chapter_obj)
 
     @staticmethod
-    def get_df():
+    def build_df():
         df = pd.read_excel(os.path.dirname(os.path.abspath(__file__)) + '/all_pages.xlsx')
         df = df.melt(id_vars='masechet', var_name='chapter', value_name='page')
         df[['chapter_side', 'chapter']] = df.chapter.str.split('_', expand=True)
@@ -65,8 +67,22 @@ class Bavli:
 
         return df
 
+    def all_pages_in_each_chapter(self):
+        all_chapters = []
+        for masechet_name, masechet in self.bavli.items():
+            for chapter in self.bavli[masechet_name].chapters:
+                tmp = dict(masechet=masechet_name,
+                           chapter=chapter.chapter_number,
+                           pages=self.bavli[masechet_name].chapters[chapter.chapter_number-1].list_of_all_pages)
+                all_chapters.append(tmp)
+        all_chapters = pd.DataFrame(all_chapters).explode('pages')
+        return all_chapters
+
     def get_pages(self):
         return self.bavli
 
     def get_df(self):
         return self.df
+
+    def get_pages_at_chapters(self):
+        return self.all_chapters

@@ -5,3 +5,7 @@ b = b['ברכות'].chapters[2].start.page_hebrew_string
 print(b)
 b = bp.bavli_pages_as_df()
 print(b)
+
+b = bp.get_pages_at_chapters()
+print(b)
+
