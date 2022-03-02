@@ -1,6 +1,7 @@
 import os
 
 import pandas as pd
+import gematriapy
 
 
 class Page:
@@ -11,13 +12,20 @@ class Page:
 
     @staticmethod
     def cast_hebrew_page_to_number(page_hebrew_letter):
-        return -1
+        return gematriapy.to_number(page_hebrew_letter)
 
 
 class Chapter:
     def __init__(self, start, end):
         self.start = Page(start)
         self.end = Page(end)
+        self.list_of_all_pages = self.get_list_of_all_pages()
+
+    def get_list_of_all_pages(self):
+        start_number = self.start.page_number
+        end_number = self.end.page_number
+        list_of_all_pages = [gematriapy.to_hebrew(n) for n in range(start_number, end_number + 1)]
+        return list_of_all_pages
 
 
 class Masechet:
@@ -28,15 +36,11 @@ class Masechet:
 
 class Bavli:
     def __init__(self):
-        self.df = pd.read_excel(os.path.dirname(os.path.abspath(__file__))+'/all_pages.xlsx')
-        self.df = self.df.melt(id_vars='masechet', var_name='chapter', value_name='page')
-        self.df[['chapter_side', 'chapter']]=self.df.chapter.str.split('_', expand=True)
-        self.df = self.df.query('~page.isna()')
-        self.df.chapter = self.df.chapter.astype(int)
-
-        # df.to_excel(os.path.dirname(os.path.abspath(__file__))+'/del.xlsx')
-
+        self.df = self.get_df()
         self.bavli = dict()
+        self.build_nested_data()
+
+    def build_nested_data(self):
         for masechet in self.df.masechet.unique():
             self.bavli[masechet] = Masechet(masechet)
             for chapter in self.df.query('masechet==@masechet').chapter.sort_values().unique():
@@ -46,6 +50,20 @@ class Bavli:
                     print(chapter_df)
                 chapter_obj = Chapter(start=chapter_df.start, end=chapter_df.end)
                 self.bavli[masechet].chapters.append(chapter_obj)
+
+    @staticmethod
+    def get_df():
+        df = pd.read_excel(os.path.dirname(os.path.abspath(__file__)) + '/all_pages.xlsx')
+        df = df.melt(id_vars='masechet', var_name='chapter', value_name='page')
+        df[['chapter_side', 'chapter']] = df.chapter.str.split('_', expand=True)
+        df = df.query('~page.isna()')
+        df.chapter = df.chapter.astype(int)
+        df['page_number'] = df.page.str[:-1].apply(gematriapy.to_number)
+        df['page_first_side'] = df.page.str[-1].apply(lambda s: True if s == '.' else False)
+
+        # df.to_excel(os.path.dirname(os.path.abspath(__file__))+'/del.xlsx')
+
+        return df
 
     def get_pages(self):
         return self.bavli

@@ -20,7 +20,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    install_requires=['pandas'],
+    install_requires=['pandas', 'gematriapy'],
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src", exclude=['*_tests', '*_examples'], ),
     python_requires=">=3.6",
