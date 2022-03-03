@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="bavli_pages",
-    version="0.1.1",
+    version="0.1.2",
     author="Lior Israeli",
     author_email="israelilior@gmail.com",
     description="List of pages per Masechet at each chapter at the Jewish Talmud/Gemara/Shas Bavli",
