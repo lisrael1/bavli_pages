@@ -16,8 +16,8 @@ usage example:
         pages          יב
     print(b.query("pages=='יב'").tail(4).T)
         masechet  תמורה  כריתות  מעילה  נידה
-        chapter       1       3      3     1
-        pages        יב      יב     יב    יב
+        chapter     1      3      3     1
+        pages       יב     ב     יב     יב
 
     b = bp.bavli_pages_per_chapter()
         
