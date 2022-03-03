@@ -5,7 +5,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setuptools.setup(
     name="bavli_pages",
-    version="0.1.2",
+    version="0.1.3",
     author="Lior Israeli",
     author_email="israelilior@gmail.com",
     description="List of pages per Masechet at each chapter at the Jewish Talmud/Gemara/Shas Bavli",
@@ -20,6 +20,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
+    package_data={"": ["*.xlsx"]},
     install_requires=['pandas', 'gematriapy'],
     package_dir={"": "src"},
     packages=setuptools.find_packages(where="src", exclude=['*_tests', '*_examples'], ),
