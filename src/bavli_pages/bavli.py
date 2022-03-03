@@ -37,10 +37,15 @@ class Masechet:
 
 class Bavli:
     def __init__(self):
-        self.df = self.build_df()
+        update_tables_by_all_pages = False
+        if update_tables_by_all_pages:
+            self.generate_chapter_view()
+        self.df = pd.read_excel(os.path.dirname(os.path.abspath(__file__)) + '/chapter_view.xlsx')
         self.bavli = dict()
         self.build_nested_data()
-        self.all_chapters = self.all_pages_in_each_chapter()
+        if update_tables_by_all_pages:
+            self.all_pages_in_each_chapter()
+        self.all_chapters = pd.read_excel(os.path.dirname(os.path.abspath(__file__)) + '/pages_view.xlsx')
 
     def build_nested_data(self):
         for masechet in self.df.masechet.unique():
@@ -54,18 +59,16 @@ class Bavli:
                 self.bavli[masechet].chapters.append(chapter_obj)
 
     @staticmethod
-    def build_df():
+    def generate_chapter_view():
         df = pd.read_excel(os.path.dirname(os.path.abspath(__file__)) + '/all_pages.xlsx')
         df = df.melt(id_vars='masechet', var_name='chapter', value_name='page')
         df[['chapter_side', 'chapter']] = df.chapter.str.split('_', expand=True)
-        df = df.query('~page.isna()')
+        df = df.query('~page.isna()').copy()
         df.chapter = df.chapter.astype(int)
-        df['page_number'] = df.page.str[:-1].apply(gematriapy.to_number)
-        df['page_first_side'] = df.page.str[-1].apply(lambda s: True if s == '.' else False)
+        df['page_number'] = df.page.str[:-1].apply(gematriapy.to_number).values
+        df['page_first_side'] = df.page.str[-1].apply(lambda s: True if s == '.' else False).values
 
-        # df.to_excel(os.path.dirname(os.path.abspath(__file__))+'/del.xlsx')
-
-        return df
+        df.to_excel(os.path.dirname(os.path.abspath(__file__))+'/chapter_view.xlsx')
 
     def all_pages_in_each_chapter(self):
         all_chapters = []
@@ -76,7 +79,7 @@ class Bavli:
                            pages=self.bavli[masechet_name].chapters[chapter.chapter_number-1].list_of_all_pages)
                 all_chapters.append(tmp)
         all_chapters = pd.DataFrame(all_chapters).explode('pages')
-        return all_chapters
+        all_chapters.to_excel(os.path.dirname(os.path.abspath(__file__))+'/pages_view.xlsx')
 
     def get_pages(self):
         return self.bavli
