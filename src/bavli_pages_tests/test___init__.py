@@ -1,5 +1,5 @@
 from unittest import TestCase
-from bavli_pages import bavli_pages
+import bavli_pages as bp
 
 
 class Test(TestCase):
