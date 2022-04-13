@@ -1,5 +1,7 @@
 import bavli_pages as bp
 
+bp._get_bavli_obj().generate_chapter_view()
+bp._get_bavli_obj().all_pages_in_each_chapter()
 
 masechtot_dict = bp.bavli_pages_as_nested_data()
 hebrew_page = masechtot_dict['ברכות'].chapters[2].start.page_hebrew_string

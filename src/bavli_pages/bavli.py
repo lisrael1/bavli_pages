@@ -79,7 +79,7 @@ class Bavli:
                   "and it's not the situation")
             print(df.groupby(['masechet', 'chapter']).size().value_counts())
 
-        df.to_excel(os.path.dirname(os.path.abspath(__file__))+'/chapter_view.xlsx', index=False)
+        df.to_excel(os.path.dirname(os.path.abspath(__file__)) + '/chapter_view.xlsx', index=False)
 
     def all_pages_in_each_chapter(self):
         all_pages = []
@@ -87,13 +87,13 @@ class Bavli:
             for chapter in self.bavli[masechet_name].chapters:
                 tmp = dict(masechet=masechet_name,
                            chapter=chapter.chapter_number,
-                           pages=self.bavli[masechet_name].chapters[chapter.chapter_number-1].list_of_all_pages)
+                           pages=self.bavli[masechet_name].chapters[chapter.chapter_number - 1].list_of_all_pages)
                 all_pages.append(tmp)
         all_pages = pd.DataFrame(all_pages).explode('pages')
         all_pages['page_number'] = all_pages.fillna('ת').pages.apply(gematriapy.to_number)
 
         # looking for jumps in chapters
-        if all_pages.groupby('masechet').chapter.apply(lambda c: not c.is_monotonic).sum() !=0:
+        if all_pages.groupby('masechet').chapter.apply(lambda c: not c.is_monotonic).sum() != 0:
             print('error - jumps at the chapters')
             print(all_pages.groupby('masechet').chapter.apply(lambda c: not c.is_monotonic))
 
@@ -102,11 +102,32 @@ class Bavli:
             print('error - jumps at the page_number')
             print(all_pages.groupby('masechet').page_number.apply(lambda c: not c.is_monotonic))
 
-        all_pages.to_excel(os.path.dirname(os.path.abspath(__file__))+'/pages_view.xlsx', index=False)
+        missing_pages = all_pages \
+            .drop_duplicates(['masechet', 'page_number']) \
+            .query('masechet!="תמיד"') \
+            .groupby('masechet') \
+            .apply(lambda g: g.page_number.max() != g.shape[0] + 1)
+        if missing_pages.sum():
+            print('error - max page not as expected')
+            print(missing_pages)
+        unique_pages = all_pages.groupby('masechet').apply(lambda g: g.page_number.nunique() != g.shape[0])
+        if unique_pages.sum():
+            print('error - missing page ')
+            print(unique_pages)
+        raw_pages = all_pages \
+            .query('masechet!="תמיד"') \
+            .groupby('masechet') \
+            .apply(lambda g: all(i == j for i, j in
+                                 zip(g.page_number.sort_values().unique().tolist(),
+                                     range(2, g.shape[0] + 2))))
+        if raw_pages.mean() != 1:
+            print('missing pages')
+            print(raw_pages)
+        all_pages.to_excel(os.path.dirname(os.path.abspath(__file__)) + '/pages_view.xlsx', index=False)
 
         # old school checking
         all_pages = all_pages.assign(next_page_chapter=all_pages.chapter.shift().fillna(0).astype(int))
-        should_be_empty = all_pages\
+        should_be_empty = all_pages \
             .query('chapter != next_page_chapter and chapter-1 != next_page_chapter and chapter != 1')
         if not should_be_empty.empty:
             print('error - there are jumps in chapters at pages_view.xlsx')
