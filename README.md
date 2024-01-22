@@ -36,6 +36,7 @@ usage example:
 | תענית      | 3       | כו.  | end          | 26          | True             |
 | תענית      | 4       | כו.  | start        | 26          | True             |
 | תענית      | 4       | לא:  | end          | 31          | False            |
+
 [626 rows x 6 columns]
 ```python
         
